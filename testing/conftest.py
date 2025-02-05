@@ -43,6 +43,7 @@ def restore_settrace(monkeypatch):
             orig_settrace(_orig_trace)
         else:
             orig_settrace(func)
+
     monkeypatch.setattr("sys.settrace", settrace)
 
     yield
@@ -51,8 +52,8 @@ def restore_settrace(monkeypatch):
     if newtrace is not _orig_trace:
         sys.settrace(_orig_trace)
         assert newtrace is None, (
-            "tracing function was not reset! Breakpoints left? ({})".format(
-                newtrace))
+            f"tracing function was not reset! Breakpoints left? ({newtrace})"
+        )
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -99,7 +100,7 @@ def readline_param(request):
         try:
             import pyrepl.readline  # noqa: F401
         except ImportError as exc:
-            pytest.skip(msg="pyrepl not available: {}".format(exc))
+            pytest.skip(reason=f"pyrepl not available: {exc}")
         finally:
             sys.stdin = old_stdin
         m.setattr("fancycompleter.DefaultConfig.prefer_pyrepl", True)
@@ -111,6 +112,7 @@ def readline_param(request):
 @pytest.fixture
 def monkeypatch_readline(monkeypatch, readline_param):
     """Patch readline to return given results."""
+
     def inner(line, begidx, endidx):
         if readline_param == "pyrepl":
             readline = "pyrepl.readline"
@@ -118,9 +120,9 @@ def monkeypatch_readline(monkeypatch, readline_param):
             assert readline_param == "readline"
             readline = "readline"
 
-        monkeypatch.setattr("%s.get_line_buffer" % readline, lambda: line)
-        monkeypatch.setattr("%s.get_begidx" % readline, lambda: begidx)
-        monkeypatch.setattr("%s.get_endidx" % readline, lambda: endidx)
+        monkeypatch.setattr(f"{readline}.get_line_buffer", lambda: line)
+        monkeypatch.setattr(f"{readline}.get_begidx", lambda: begidx)
+        monkeypatch.setattr(f"{readline}.get_endidx", lambda: endidx)
 
     return inner
 
@@ -128,11 +130,11 @@ def monkeypatch_readline(monkeypatch, readline_param):
 @pytest.fixture
 def monkeypatch_pdb_methods(monkeypatch):
     def mock(method, *args, **kwargs):
-        print("=== %s(%s, %s)" % (method, args, kwargs))
+        print(f"=== {method}({args}, {kwargs})")
 
     for mock_method in ("set_trace", "set_continue"):
         monkeypatch.setattr(
-            "pdbpp.pdb.Pdb.%s" % mock_method, functools.partial(mock, mock_method)
+            f"pdbpp.pdb.Pdb.{mock_method}", functools.partial(mock, mock_method)
         )
 
 
@@ -167,15 +169,14 @@ def patched_completions(monkeypatch):
     return inner
 
 
-@pytest.fixture(params=("color", "nocolor"), scope="session")
-def fancycompleter_color_param(request):
-    m = MonkeyPatch()
-
+@pytest.fixture(params=("color", "nocolor"))
+def fancycompleter_color_param(request, monkeypatch):
     if request.param == "color":
-        m.setattr("fancycompleter.DefaultConfig.use_colors", True)
+        monkeypatch.setattr("fancycompleter.DefaultConfig.use_colors", True)
     else:
-        m.setattr("fancycompleter.DefaultConfig.use_colors", False)
-    return request.param
+        monkeypatch.setattr("fancycompleter.DefaultConfig.use_colors", False)
+
+    yield request.param
 
 
 @pytest.fixture
@@ -190,15 +191,13 @@ def monkeypatch_importerror(monkeypatch):
             return orig_import(name, *args)
 
         with monkeypatch.context() as m:
-            if sys.version_info >= (3,):
-                m.setattr('builtins.__import__', import_mock)
-            else:
-                m.setattr('__builtin__.__import__', import_mock)
+            m.setattr("builtins.__import__", import_mock)
             yield m
+
     return cm
 
 
 def skip_with_missing_pth_file():
     pth = os.path.join(sysconfig.get_path("purelib"), "pdbpp_hijack_pdb.pth")
     if not os.path.exists(pth):
-        pytest.skip("Missing pth file ({}), editable install?".format(pth))
+        pytest.skip(f"Missing pth file ({pth}), editable install?")

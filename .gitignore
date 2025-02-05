@@ -1,3 +1,5 @@
+src/pdbpp_utils/_version.py
+
 # Ignore local virtualenvs
 syntax:glob
 lib/
@@ -23,8 +25,12 @@ env/
 .env/
 3rdparty/
 .tox
+.nox
 .cache
 .coverage
 .ropeproject
 *.sublime-*
 .env/
+
+coverage.xml
+.coverage*

@@ -36,18 +36,7 @@ unexpected behavior, please report it as a bug.
 Installation
 ------------
 
-Since ``pdb++`` is not a valid package name the package is named ``pdbpp``::
-
-    $ pip install pdbpp
-
-``pdb++`` is also available via `conda`_::
-
-    $ conda install -c conda-forge pdbpp
-
-Alternatively, you can just put ``pdb.py`` somewhere inside your
-``PYTHONPATH``.
-
-.. _conda: https://anaconda.org/conda-forge/pdbpp
+    $ pip install git+https://github.com/bretello/pdbpp
 
 Usage
 -----
@@ -88,11 +77,6 @@ The following are new commands that you can use from the interactive
   Start an interactive interpreter whose global namespace contains all the
   names found in the current scope.
 
-
-``track EXPRESSION``
-  Display a graph showing which objects are the value of the expression refers
-  to and are referred by.  This command requires the ``pypy`` source code to
-  be importable.
 
 ``display EXPRESSION``
   Add an expression to the **display list**; expressions in this list are
@@ -203,7 +187,7 @@ pdb++.
   by default, it breaks every time the attribute is set. E.g.::
 
       @break_on_setattr('bar')
-      class Foo(object):
+      class Foo:
           pass
       f = Foo()
       f.bar = 42    # the program breaks here
@@ -211,7 +195,7 @@ pdb++.
   If can be used even after the class has already been created, e.g. if we
   want to break when some attribute of a particular object is set::
 
-      class Foo(object):
+      class Foo:
           pass
       a = Foo()
       b = Foo()
@@ -280,11 +264,6 @@ default value:
 
 ``truncate_long_lines = True``
   Truncate lines which exceed the terminal width.
-
-``exec_if_unfocused = None``
-  Shell command to execute when starting the pdb prompt and the terminal
-  window is not focused.  Useful to e.g. play a sound to alert the user that
-  the execution of the program stopped. It requires the wmctrl_ module.
 
 ``enable_hidden_frames = True``
   Certain frames can be hidden by default.
@@ -370,7 +349,6 @@ Example::
         pygments_formatter_class = "pygments.formatters.TerminalTrueColorFormatter"
         pygments_formatter_kwargs = {"style": "solarized-light"}
 
-.. _wmctrl: http://bitbucket.org/antocuni/wmctrl
 .. _SGR parameters: https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
 
 Notes on color options

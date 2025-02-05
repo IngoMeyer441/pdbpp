@@ -1,0 +1,68 @@
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+
+[tool.ruff.lint]
+select = [
+  # pycodestyle
+  "E",
+  # Pyflakes
+  "F",
+  # pyupgrade
+  "UP",
+  # flake8-bugbear
+  "B",
+  # flake8-simplify
+  "SIM",
+  # isort
+  "I",
+]
+ignore = ["F401", "E722"]
+
+[tool.ruff.lint.per-file-ignores]
+"testing/**" = ["S", "B011", "B904", "E501"]
+"src/pdbpp.py" = [
+    "B019" # lru cache can lead to memory leaks. TODO: stop silencing the error and fix it
+]
+"src/pdbpp_utils/_version.py" = ["UP"]
+
+[tool.pytest.ini_options]
+addopts = "--cov --cov-branch --no-cov-on-fail -ra --tb short -p pytester"
+testpaths = ["testing"]
+
+[tool.setuptools_scm]
+write_to = "src/pdbpp_utils/_version.py"
+
+
+[tool.mypy]
+# Error output
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+show_traceback = true
+pretty = true
+check_untyped_defs = true
+# Warnings
+warn_no_return = true
+warn_redundant_casts = true
+warn_unreachable = true
+strict_equality = true
+no_implicit_optional = true
+warn_unused_configs = true
+files = ["src", "testing"]
+
+[[tool.mypy.overrides]]
+ignore_missing_imports = true
+module = [
+"fancycompleter"
+]
+
+[tool.coverage.run]
+branch = true
+source = ["pdbpp", "testing"]
+
+[tool.coverage.paths]
+source = ["src", "*/site-packages"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["pdbpp", "pdbpp_utils"]
