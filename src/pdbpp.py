@@ -71,8 +71,9 @@ def import_from_stdlib(name):
     # directory but a file named python3xx.zip.
     if os.path.isfile(stdlibdir):
         import zipimport
+
         zi = zipimport.zipimporter(stdlibdir)
-        co_module = zi.get_code(name)        
+        co_module = zi.get_code(name)
     exec(co_module, result.__dict__)
 
     return result
@@ -315,8 +316,11 @@ class PdbMeta(type):
             if (
                 frame.f_code.co_name == "set_trace"
                 and frame.f_back
-                and "set_trace"
-                in (frame.f_back.f_code.co_names + frame.f_back.f_code.co_varnames)
+                and any(
+                    name
+                    in (frame.f_back.f_code.co_names + frame.f_back.f_code.co_varnames)
+                    for name in ("breakpoint", "set_trace")
+                )
             ):
                 called_for_set_trace = frame
                 break
