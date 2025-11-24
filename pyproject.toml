@@ -37,6 +37,7 @@ dependencies = [
 testing = [
     "pytest",
     "pytest-cov",
+    "coverage<7.11.1",
     "ipython",
     "pexpect",
 ]
@@ -105,6 +106,7 @@ module = [
 ]
 
 [tool.coverage.run]
+core = "ctrace"
 branch = true
 source = ["pdbpp", "testing"]
 
