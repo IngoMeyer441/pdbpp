@@ -23,8 +23,6 @@ from pygments import __version__ as pygments_version
 import pdbpp
 from pdbpp import DefaultConfig, Pdb, StringIO
 
-from .conftest import skip_with_missing_pth_file
-
 pygments_major, pygments_minor, _ = pygments_version.split(".")
 
 
@@ -291,13 +289,7 @@ def run_func(func, expected, terminal_size=None) -> tuple[list[str], list[str]]:
 
 
 def count_frames():
-    # FIXME: isn't there a better way to do this?
-    f = sys._getframe()
-    i = 0
-    while f is not None:
-        i += 1
-        f = f.f_back
-    return i
+    return len(traceback.extract_stack())
 
 
 class InnerTestException(Exception):
@@ -1672,14 +1664,12 @@ def test_up_down_sticky():
         # sticky
         <CLEARSCREEN>
         [NUM] > .*b(), 5 frames hidden
-
         NUM         def b():
         NUM             set_trace()
         NUM  ->         return
         # up
         <CLEARSCREEN>
         [NUM] > .*a(), 5 frames hidden
-
         NUM         def a()
         NUM  ->         b()
         # c
@@ -2408,7 +2398,6 @@ def test_truncated_source_with_pygments():
             # sticky
             <CLEARSCREEN>
             [NUM] > .*fn(), 5 frames hidden
-
             NUM +       {highlighted_code}
             NUM +^[[38;5;250m        ^[[39m^[[38;5;124.*m\"\"\"some docstring longer than maxlength for truncate_long_lines^[[39.*m
             NUM +           a ^[[38;5;241m=^[[39m ^[[38;5;241m1^[[39m
@@ -2466,7 +2455,6 @@ def test_truncated_source_with_pygments_and_highlight():
         # sticky
         <CLEARSCREEN>
         [NUM] > .*fn(), 5 frames hidden
-
         <COLORNUM> +       {highlighted_code}
         <COLORNUM> +^[[38;5;250m        ^[[39m^[[38;5;124.*m\"\"\"some docstring longer than maxlength for truncate_long_lines<PYGMENTSRESET>
         <COLORNUM> +           a ^[[38;5;241m=^[[39m ^[[38;5;241m1^[[39m
@@ -3018,7 +3006,6 @@ def test_sticky():
         # sticky
         <CLEARSCREEN>
         [NUM] > .*fn(), 5 frames hidden
-
         NUM         def fn():
         NUM             set_trace()
         NUM  ->         a = 1
@@ -3028,7 +3015,6 @@ def test_sticky():
         # n
         <CLEARSCREEN>
         [NUM] > .*fn(), 5 frames hidden
-
         NUM         def fn():
         NUM             set_trace()
         NUM             a = 1
@@ -3069,7 +3055,6 @@ def test_sticky_resets_cls():
         # sticky
         <CLEARSCREEN>
         [NUM] > .*fn(), 5 frames hidden
-
         NUM         def fn():
         NUM             set_trace()
         NUM  ->         a = 1
@@ -3079,7 +3064,6 @@ def test_sticky_resets_cls():
         # c
         1
         [NUM] > .*fn(), 5 frames hidden
-
         NUM         def fn():
         NUM             set_trace()
         NUM             a = 1
@@ -3089,7 +3073,6 @@ def test_sticky_resets_cls():
         # n
         <CLEARSCREEN>
         [NUM] > .*fn().*
-
         NUM         def fn():
         NUM             set_trace()
         NUM             a = 1
@@ -3134,7 +3117,6 @@ def test_sticky_with_same_frame():
         # sticky
         <CLEARSCREEN>
         [NUM] > .*inner(), 5 frames hidden
-
         NUM             def inner(cleanup):
         NUM                 set_trace(cleanup=cleanup)
         NUM  ->             print(cleanup)
@@ -3142,14 +3124,12 @@ def test_sticky_with_same_frame():
         <CLEARSCREEN>
         True
         [NUM] > .*inner()->None, 5 frames hidden
-
         NUM             def inner(cleanup):
         NUM                 set_trace(cleanup=cleanup)
         NUM  ->             print(cleanup)
          return None
         # c
         [NUM] > .*inner(), 5 frames hidden
-
         NUM             def inner(cleanup):
         NUM  {marker_313}             set_trace(cleanup=cleanup)
         NUM  {marker_pre_313}             print(cleanup)
@@ -3158,7 +3138,6 @@ def test_sticky_with_same_frame():
         """ + (
         """
         [NUM] > .*inner().*
-
         NUM             def inner(cleanup):
         NUM                 set_trace(cleanup=cleanup)
         NUM  ->             print(cleanup)
@@ -3169,7 +3148,6 @@ def test_sticky_with_same_frame():
         else """
         False
         [NUM] > .*inner()->None, 5 frames hidden
-
         NUM             def inner(cleanup):
         NUM                 set_trace(cleanup=cleanup)
         NUM  ->             print(cleanup)
@@ -3210,7 +3188,6 @@ def test_sticky_range():
         # sticky {start} {end}
         <CLEARSCREEN>
         [NUM] > .*fn(), 5 frames hidden
-
         {start} \\s+         set_trace()
         NUM  ->         a = 1
         NUM             b = 2
@@ -3240,7 +3217,6 @@ def test_sticky_by_default():
 
     expected = f"""
         [NUM] > .*fn(), 5 frames hidden
-
         NUM         def fn():
         NUM  {marker_313}         set_trace(Config=MyConfig)
         NUM  {marker_pre_313}         a = 1
@@ -3250,7 +3226,6 @@ def test_sticky_by_default():
         # n
         <CLEARSCREEN>
         [NUM] > .*fn(), 5 frames hidden
-
         NUM         def fn():
         NUM             set_trace(Config=MyConfig)
         NUM  {marker_313}         a = 1
@@ -3283,7 +3258,6 @@ def test_sticky_by_default_with_use_pygments_auto():
         expected = textwrap.dedent(
             f"""
             [NUM] > .*fn().*
-
             NUM         {highlighted_code}
             NUM  ->         set_trace(Config^[[38;5;241m=^[[39mMyConfig)
             NUM             a ^[[38;5;241m=^[[39m ^[[38;5;241m1^[[39m
@@ -3291,7 +3265,6 @@ def test_sticky_by_default_with_use_pygments_auto():
             # n
             <CLEARSCREEN>
             [NUM] > .*fn(), 5 frames hidden
-
             NUM         {highlighted_code}
             NUM             set_trace(Config^[[38;5;241m=^[[39mMyConfig)
             NUM  ->         a ^[[38;5;241m=^[[39m ^[[38;5;241m1^[[39m
@@ -3303,7 +3276,6 @@ def test_sticky_by_default_with_use_pygments_auto():
         expected = textwrap.dedent(
             f"""
             [NUM] > .*fn(), 5 frames hidden
-
             NUM         {highlighted_code}
             NUM             set_trace(Config^[[38;5;241m=^[[39mMyConfig)
             NUM  ->         a ^[[38;5;241m=^[[39m ^[[38;5;241m1^[[39m
@@ -3340,7 +3312,6 @@ def test_sticky_dunder_exception():
         # sticky
         <CLEARSCREEN>
         [NUM] > {RE_THIS_FILE_CANONICAL}(NUM)fn(), 5 frames hidden
-
         NUM         def fn():
         NUM             def raises():
         NUM                 raise InnerTestException()
@@ -3376,7 +3347,6 @@ def test_sticky_dunder_exception_with_highlight():
         # sticky
         <CLEARSCREEN>
         [NUM] > <COLORFNAME>{RE_THIS_FILE_CANONICAL}<COLORRESET>(<COLORNUM>)fn(), 5 frames hidden
-
         <COLORNUM>         def fn():
         <COLORNUM>             def raises():
         <COLORNUM>                 raise InnerTestException()
@@ -3452,7 +3422,6 @@ def test_sticky_dunder_return():
         # sticky
         <CLEARSCREEN>
         [NUM] > .*(NUM)returns(), 5 frames hidden
-
         NUM  ->         def returns():
         NUM                 return 40 \\+ 2
         # retval
@@ -3460,7 +3429,6 @@ def test_sticky_dunder_return():
         # r
         <CLEARSCREEN>
         [NUM] > {RE_THIS_FILE_CANONICAL}(NUM)returns()->42, 5 frames hidden
-
         NUM             def returns():
         NUM  ->             return 40 \\+ 2
          return 42
@@ -3492,19 +3460,16 @@ def test_sticky_with_user_exception():
         # sticky
         <CLEARSCREEN>
         [NUM] > .*throws(), 5 frames hidden
-
         NUM  ->         def throws():
         NUM                 raise InnerTestException()
         # n
         <CLEARSCREEN>
         [NUM] > .*throws(), 5 frames hidden
-
         NUM             def throws():
         NUM  ->             raise InnerTestException()
         # n
         <CLEARSCREEN>
         [NUM] > .*throws(), 5 frames hidden
-
         NUM             def throws():
         NUM  ->             raise InnerTestException()
         InnerTestException:
@@ -3537,7 +3502,6 @@ def test_sticky_last_value():
         # sticky
         <CLEARSCREEN>
         [NUM] > .*fn(), 5 frames hidden
-
         NUM         def fn():
         NUM             outer()
         NUM             set_trace()
@@ -3547,7 +3511,6 @@ def test_sticky_last_value():
         ValueError: very long excmsg\\nvery long excmsg\\nvery long e…
         # c
         [NUM] > .*fn().*frames hidden
-
         NUM         def fn():
         NUM             outer()
         NUM             set_trace()
@@ -3612,7 +3575,6 @@ def test_sticky_cutoff_with_tail():
 
     expected = textwrap.dedent("""
         [NUM] > .*fn(), 5 frames hidden
-
         NUM         def fn():
         NUM             set_trace(Config=MyConfig)
         NUM  ->         print(1)
@@ -3627,7 +3589,6 @@ def test_sticky_cutoff_with_tail():
         expected = (
             textwrap.dedent("""
             [NUM] > .*(NUM)fn(), .* frames hidden
-
             NUM         def fn():
             NUM  ->         set_trace(Config=MyConfig)
             NUM             print(1)
@@ -3662,7 +3623,6 @@ def test_sticky_cutoff_with_head():
 
     expected = textwrap.dedent("""
         [NUM] > .*fn(), 5 frames hidden
-
         ...
         NUM             # 4
         NUM             # 5
@@ -3676,7 +3636,6 @@ def test_sticky_cutoff_with_head():
         expected = (
             textwrap.dedent("""
             [NUM] > .*(NUM)fn(), 5 frames hidden
-
             ...
             NUM             # 4
             NUM             # 5
@@ -3712,7 +3671,6 @@ def test_sticky_cutoff_with_head_and_tail():
 
     expected = textwrap.dedent("""
         [NUM] > .*fn(), 5 frames hidden
-
         ...
         NUM             set_trace(Config=MyConfig)
         NUM  ->         print(1)
@@ -3727,7 +3685,6 @@ def test_sticky_cutoff_with_head_and_tail():
         expected = (
             textwrap.dedent("""
             [NUM] > .*(NUM)fn(), 5 frames hidden
-
             ...
             NUM             # 3
             NUM  ->         set_trace(Config=MyConfig)
@@ -3781,7 +3738,6 @@ def test_sticky_cutoff_with_long_head_and_tail():
 
     expected = textwrap.dedent("""
         [NUM] > .*fn(), 5 frames hidden
-
         ...
         NUM             # 8
         NUM             # 9
@@ -3800,7 +3756,6 @@ def test_sticky_cutoff_with_long_head_and_tail():
         expected = (
             textwrap.dedent("""
             [NUM] > .*(NUM)fn(), 5 frames hidden
-
             ...
             NUM             # 7
             NUM             # 8
@@ -3843,7 +3798,6 @@ def test_sticky_cutoff_with_decorator():
 
     expected = textwrap.dedent("""
         [NUM] > .*fn(), 5 frames hidden
-
         NUM         @deco
         ...
         NUM             # 5
@@ -3858,7 +3812,6 @@ def test_sticky_cutoff_with_decorator():
         expected = (
             textwrap.dedent("""
             [NUM] > .*(NUM)fn(), 5 frames hidden
-
             NUM         @deco
             ...
             NUM             # 5
@@ -3903,7 +3856,6 @@ def test_sticky_cutoff_with_many_decorators():
 
     expected = textwrap.dedent("""
         [NUM] > .*fn(), 5 frames hidden
-
         NUM         @deco
         ...
         NUM         @deco
@@ -3917,7 +3869,6 @@ def test_sticky_cutoff_with_many_decorators():
         expected = (
             textwrap.dedent("""
             [NUM] > .*(NUM)fn(), 5 frames hidden
-
             NUM         @deco
             ...
             NUM         @deco
@@ -3959,7 +3910,6 @@ def test_sticky_cutoff_with_decorator_colored():
         textwrap.dedent(
             """
             [NUM] > .*fn(), 5 frames hidden
-
             <COLORNUM>         ^[[38;5;129m@deco^[[39m
             <COLORNUM>         ^[[38;5;129m@deco^[[39m
             ...
@@ -4010,7 +3960,6 @@ def test_sticky_cutoff_with_minimal_lines():
 
     expected = textwrap.dedent("""
         [NUM] > .*fn(), 5 frames hidden
-
         NUM         @deco
         ...
         NUM  ->         print(1)
@@ -4026,7 +3975,6 @@ def test_sticky_cutoff_with_minimal_lines():
             textwrap.dedent(
                 """
             [NUM] > .*(NUM)fn(), 5 frames hidden
-
             NUM         @deco
             NUM         def fn()
             NUM  ->         set_trace(Config=MyConfig)
@@ -5099,7 +5047,6 @@ def test_debug_normal():
         # sticky
         <CLEARSCREEN>
         [NUM] > .*(), 5 frames hidden
-
         NUM         def fn():
         NUM             g()
         NUM             set_trace()
@@ -5755,9 +5702,6 @@ def test_python_m_pdb_usage():
 
 @pytest.mark.parametrize("PDBPP_HIJACK_PDB", (1, 0))
 def test_python_m_pdb_uses_pdbpp_and_env(PDBPP_HIJACK_PDB, monkeypatch, tmpdir):
-    if PDBPP_HIJACK_PDB:
-        skip_with_missing_pth_file()
-
     monkeypatch.setenv("PDBPP_HIJACK_PDB", str(PDBPP_HIJACK_PDB))
 
     f = tmpdir.ensure("test.py")
@@ -7394,7 +7338,6 @@ def test_do_bt_sticky():
         # sticky
         <CLEARSCREEN>
         [NUM] > .*fn().*
-
         NUM .* def fn():
         NUM  ->.*  set_trace()
          return None
@@ -7845,7 +7788,6 @@ def test_keeps_reset_escape_sequence_with_source_highlight():
 
     expected = textwrap.dedent(f"""
         [NUM] > .*fn()
-
         <COLORNUM>         {highlighted_code}
         <{curline_313}>  {marker_313}         set_trace(Config^[[38;5;.*m=^[[39.*mMyConfig).*
         <COLORNUM>     $
@@ -8015,7 +7957,6 @@ def test_exception_info_main(testdir):
         "(Pdb++) Uncaught exception. Entering post mortem debugging",
         # NOTE: this explicitly checks for a missing CLEARSCREEN in front.
         "[[]5[]] > *test_exception_info_main.py(2)f()",
-        "",
         "1     def f():",
         '2  ->     raise ValueError("foo")',
         "ValueError: foo",
@@ -8026,7 +7967,6 @@ def test_exception_info_main(testdir):
             [
                 "(Pdb++) Post mortem debugger finished. *",
                 "<CLEARSCREEN>[[]2[]] > */test_exception_info_main.py(1)<module>()",
-                "",
             ]
         )
 
@@ -8055,7 +7995,6 @@ def test_interaction_no_exception():
         -> raise ValueError()
         # sticky
         [0] > .*outer()
-
         NUM         def outer():
         NUM             try:
         NUM  >>             raise ValueError()
@@ -8115,7 +8054,6 @@ class TestCommands:
             # sticky
             <CLEARSCREEN>
             [NUM] > .*(), 5 frames hidden
-
             NUM         @staticmethod
             NUM         def fn():
             NUM             def f():
@@ -8141,7 +8079,6 @@ class TestCommands:
                 """
             stop 6
             [NUM] > .*f(), 5 frames hidden
-
             NUM             def f():
             NUM  ->             print(a)
             """
@@ -8149,7 +8086,6 @@ class TestCommands:
                 # before 3.14 location information is printed after calling f(), in 3.14 it's called after
                 else """
             [NUM] > .*f(), 5 frames hidden
-
             NUM             def f():
             NUM  ->             print(a)
             stop 6
